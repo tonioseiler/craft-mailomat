@@ -19,7 +19,7 @@
     "email": "support@furbo.ch",
     "issues": "https://github.com/tonioseiler/craft-mailomat/issues?state=open",
     "source": "https://github.com/tonioseiler/craft-mailomat",
-    "docs": "https://github.com/tonioseiler/craft-mailomat/blob/v1/README.md"
+    "docs": "https://github.com/tonioseiler/craft-mailomat/blob/main/README.md"
   },
   "require": {
     "php": "^8.0.2",
@@ -38,7 +38,7 @@
     "handle": "craft-mailomat",
     "name": "Craft Mailomat",
     "developer": "Furbo GmbH",
-    "documentationUrl": "https://github.com/tonioseiler/craft-mailomat/blob/v1/README.md",
+    "documentationUrl": "https://github.com/tonioseiler/craft-mailomat/blob/main/README.md",
     "class": "furbo\\craftmailomat\\CraftMailomat"
   },
   "scripts": {
