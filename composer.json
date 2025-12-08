@@ -1,0 +1,59 @@
+{
+  "name": "furbo/craft-mailomat",
+  "type": "craft-plugin",
+  "keywords": [
+    "cms",
+    "craftcms",
+    "mailomat",
+    "mailer",
+    "yii2"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Furbo GmbH",
+      "homepage": "https://furbo.ch/"
+    }
+  ],
+  "support": {
+    "email": "support@furbo.ch",
+    "issues": "https://github.com/tonioseiler/craft-mailomat/issues?state=open",
+    "source": "https://github.com/tonioseiler/craft-mailomat",
+    "docs": "https://github.com/tonioseiler/craft-mailomat/blob/v1/README.md"
+  },
+  "require": {
+    "php": "^8.0.2",
+    "craftcms/cms": "^4.0.0-alpha.1|^5.0.0-beta.1",
+    "symfony/mailomat-mailer": "^7.4.0"
+  },
+  "require-dev": {
+    "craftcms/ecs": "dev-main"
+  },
+  "autoload": {
+    "psr-4": {
+      "furbo\\craftmailomat\\": "src/"
+    }
+  },
+  "extra": {
+    "handle": "craft-mailomat",
+    "name": "Craft Mailomat",
+    "developer": "Furbo GmbH",
+    "documentationUrl": "https://github.com/tonioseiler/craft-mailomat/blob/v1/README.md",
+    "class": "furbo\\craftmailomat\\CraftMailomat"
+  },
+  "scripts": {
+    "check-cs": "ecs check --ansi",
+    "fix-cs": "ecs check --ansi --fix",
+    "phpstan": "phpstan --memory-limit=1G"
+  },
+  "config": {
+    "sort-packages": true,
+    "platform": {
+      "php": "8.0.2"
+    },
+    "allow-plugins": {
+      "yiisoft/yii2-composer": true,
+      "craftcms/plugin-installer": true
+    }
+  }
+}

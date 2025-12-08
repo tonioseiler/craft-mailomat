@@ -1,0 +1,32 @@
+{% import "_includes/forms" as forms %}
+
+
+{{ forms.autosuggestField({
+required: true,
+label: "API Key"|t('craft-mailomat'),
+instructions: "You can find this in your Mailomat settings for the chosen domain."|t('craft-mailomat'),
+id: 'apiKey',
+name: 'apiKey',
+suggestEnvVars: true,
+value: adapter.apiKey,
+errors: adapter.getErrors('apiKey')
+}) }}
+
+
+{% if adapter.getCampaignWebhookUrl() %}
+<div class="field">
+    <div class="heading">
+        <label>{{ "Craft Campaign Webhook URL"|t('craft-mailomat') }}</label>
+    </div>
+    <div class="input ltr">
+        <code>{{ adapter.getCampaignWebhookUrl() }}</code>
+    </div>
+    <p class="instructions">
+        {{ "Add this URL to your Mailomat webhook settings to enable bounce & complaint tracking in Craft Campaign."|t('craft-mailomat') }}
+    </p>
+</div>
+{% else %}
+<p class="warning">
+    {{ "Craft Campaign is not installed. Install it to enable webhook integration."|t('craft-mailomat') }}
+</p>
+{% endif %}
