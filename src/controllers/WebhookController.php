@@ -47,21 +47,19 @@ class WebhookController extends \putyourlightson\campaign\controllers\WebhookCon
 
         $body = Json::decodeIfJson($this->request->getRawBody());
 
-        Craft::info("Received Mailomat webhook: " . print_r($body, true), __METHOD__);
+        Campaign::$plugin->log('Received Mailomat Webhook request: ' . $this->request->getRawBody(), [], Logger::LEVEL_WARNING);
 
         if(is_array($body)) {
             $eventType = $body['eventType'] ?? null;
+            $email = $body['email'] ?? $body['recipient'] ?? null;
 
-            if($eventType === 'complained') {
-                $email = $body['email'] ?? null;
+            if($eventType === 'complained' || $eventType === 'spam') {
                 return $this->callWebhook('complained', $email);
             }
-            if($eventType === 'bounced') {
-                $email = $body['email'] ?? null;
+            if($eventType === 'bounced' || $eventType === 'failure_perm') {
                 return $this->callWebhook('bounced', $email);
             }
             if($eventType === 'unsubscribed') {
-                $email = $body['email'] ?? null;
                 return $this->callWebhook('unsubscribed', $email);
             }
 
