@@ -84,9 +84,14 @@ class MailomatAdapter extends BaseTransportAdapter
 
         $apiKey = \putyourlightson\campaign\Campaign::$plugin->settings->getApiKey();
 
-        // Devuelve la URL del webhook final
         return Craft::$app->getSites()->getCurrentSite()->getBaseUrl()
             . 'mailomat/webhook?key=' . $apiKey;
+    }
+
+    public function getWebhookBaseUrl(): string
+    {
+        return Craft::$app->getSites()->getCurrentSite()->getBaseUrl()
+            . 'mailomat/webhook';
     }
 
 }

@@ -13,7 +13,13 @@ errors: adapter.getErrors('apiKey')
 }) }}
 
 
-{% if adapter.getCampaignWebhookUrl() %}
+{% set isCampaignInstalled = craft.app.plugins.isPluginInstalled('campaign') %}
+{% set isCampaignEmailSettings = craft.app.request.getSegment(1) == 'campaign'
+and craft.app.request.getSegment(2) == 'settings'
+and craft.app.request.getSegment(3) == 'email'
+%}
+
+{% if isCampaignInstalled and isCampaignEmailSettings %}
 <div class="field">
     <div class="heading">
         <label>{{ "Craft Campaign Webhook URL"|t('craft-mailomat') }}</label>
@@ -26,7 +32,15 @@ errors: adapter.getErrors('apiKey')
     </p>
 </div>
 {% else %}
-<p class="warning">
-    {{ "Craft Campaign is not installed. Install it to enable webhook integration."|t('craft-mailomat') }}
-</p>
+<div class="field">
+    <div class="heading">
+        <label>{{ "Mailomat Webhook URL"|t('craft-mailomat') }}</label>
+    </div>
+    <div class="input ltr">
+        <code>{{ adapter.getWebhookBaseUrl() }}</code>
+    </div>
+    <p class="instructions">
+        {{ "This webhook URL can still be used for custom integrations."|t('craft-mailomat') }}
+    </p>
+</div>
 {% endif %}

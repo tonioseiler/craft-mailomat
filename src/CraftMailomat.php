@@ -4,9 +4,17 @@ namespace furbo\craftmailomat;
 
 use Craft;
 use craft\base\Plugin;
+use craft\elements\User;
 use craft\events\RegisterComponentTypesEvent;
 use craft\helpers\MailerHelper;
+use craft\log\MonologTarget;
+use furbo\craftmailomat\events\MailomatWebhookEvent;
+use furbo\craftmailomat\services\WebhookCampaignService;
+use Monolog\Formatter\LineFormatter;
+use Psr\Log\LogLevel;
 use yii\base\Event;
+use yii\log\Dispatcher;
+use yii\log\Logger;
 
 /**
  * Craft mailomat plugin
@@ -18,13 +26,17 @@ use yii\base\Event;
  */
 class CraftMailomat extends Plugin
 {
+    public const EVENT_MAILOMAT_WEBHOOK = 'mailomatWebhook';
+
     public string $schemaVersion = '1.0.0';
+
+    public static CraftMailomat $plugin;
 
     public static function config(): array
     {
         return [
             'components' => [
-                // Define component configs here...
+                'webhookCampaignService' => ['class' => WebhookCampaignService::class]
             ],
         ];
     }
@@ -33,12 +45,14 @@ class CraftMailomat extends Plugin
     {
         parent::init();
 
-        // Only register webhook routes if Campaign is installed & enabled
-        if (Craft::$app->plugins->isPluginEnabled('campaign')) {
-            Craft::$app->getUrlManager()->addRules([
-                'mailomat/webhook' => 'craft-mailomat/webhook/index',
-            ], false);
-        }
+        self::$plugin = $this;
+
+        $this->registerLogTarget();
+
+        Craft::$app->getUrlManager()->addRules([
+            'mailomat/webhook' => 'craft-mailomat/webhook/index',
+        ], false);
+
 
         $this->attachEventHandlers();
 
@@ -63,5 +77,60 @@ class CraftMailomat extends Plugin
                 $event->types[] = MailomatAdapter::class;
             }
         );
+
+        // Only register webhook event if Campaign is installed & enabled
+        if (Craft::$app->plugins->isPluginEnabled('campaign')) {
+            Event::on(
+                CraftMailomat::class,
+                CraftMailomat::EVENT_MAILOMAT_WEBHOOK,
+                    function(MailomatWebhookEvent $event) {
+                        if(CraftMailomat::getInstance()->webhookCampaignService->verifyApiKey()){
+                            CraftMailomat::getInstance()->webhookCampaignService->callWebhook($event->eventType, $event->email);
+                        }
+                    }
+            );
+        }
     }
+
+    /**
+     * Registers a custom log target, keeping the format as simple as possible.
+     *
+     * @see LineFormatter::SIMPLE_FORMAT
+     */
+    private function registerLogTarget(): void
+    {
+        if (Craft::getLogger()->dispatcher instanceof Dispatcher) {
+            Craft::getLogger()->dispatcher->targets[] = new MonologTarget([
+                'name' => 'craft-mailomat',
+                'categories' => ['craft-mailomat'],
+                'level' => LogLevel::INFO,
+                'logContext' => false,
+                'allowLineBreaks' => false,
+                'formatter' => new LineFormatter(
+                    format: "[%datetime%] %message%\n",
+                    dateFormat: 'Y-m-d H:i:s',
+                ),
+            ]);
+        }
+    }
+
+
+    /**
+     * Logs a message.
+     */
+    public function log(string $message, array $params = [], int $type = Logger::LEVEL_INFO): void
+    {
+        /** @var User|null $user */
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if ($user !== null) {
+            $params['username'] = $user->username;
+        }
+
+        $message = Craft::t('craft-mailomat', $message, $params);
+
+        Craft::getLogger()->log($message, $type, 'craft-mailomat');
+    }
+
+
 }
