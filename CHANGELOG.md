@@ -1,5 +1,8 @@
 # Release Notes for Craft Mailomat
 
+## 1.0.4
+- Bug with php 8.4
+
 ## 1.0.3
 - Added Mailomat webhook support for email delivery events.
 - Introduced a custom Craft event `EVENT_MAILOMAT_WEBHOOK` triggered on every webhook call.
