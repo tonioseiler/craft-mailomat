@@ -12,6 +12,17 @@ value: adapter.apiKey,
 errors: adapter.getErrors('apiKey')
 }) }}
 
+{{ forms.autosuggestField({
+required: false,
+label: "Webhook Secret"|t('craft-mailomat'),
+instructions: "You can find this in your Mailomat webhook settings."|t('craft-mailomat'),
+id: 'webhookSecret',
+name: 'webhookSecret',
+suggestEnvVars: true,
+value: adapter.webhookSecret,
+errors: adapter.getErrors('webhookSecret')
+}) }}
+
 
 {% set isCampaignInstalled = craft.app.plugins.isPluginInstalled('campaign') %}
 {% set isCampaignEmailSettings = craft.app.request.getSegment(1) == 'campaign'

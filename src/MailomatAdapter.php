@@ -16,6 +16,7 @@ class MailomatAdapter extends BaseTransportAdapter
      * @var string The API key that should be used
      */
     public string $apiKey = '';
+    public string $webhookSecret = '';
 
     public static function displayName(): string
     {
@@ -32,6 +33,7 @@ class MailomatAdapter extends BaseTransportAdapter
             'class' => EnvAttributeParserBehavior::class,
             'attributes' => [
                 'apiKey',
+                'webhookSecret'
             ],
         ];
         return $behaviors;
@@ -43,7 +45,8 @@ class MailomatAdapter extends BaseTransportAdapter
     public function attributeLabels()
     {
         return [
-            'apiKey' => Craft::t('craft-mailomat', 'API Key')
+            'apiKey' => Craft::t('craft-mailomat', 'API Key'),
+            'webhookSecret' => Craft::t('craft-mailomat', 'Webhook Secret'),
         ];
     }
 
