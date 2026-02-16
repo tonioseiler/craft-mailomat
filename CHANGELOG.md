@@ -1,13 +1,13 @@
 # Release Notes for Craft Mailomat
 
 ## 1.0.6
-- new feature: get bounced emails
+- new feature: show bounced emails in a craft backend utility
 
 ## 1.0.5
-- webhook secret
+- protect webhook by a configurable secret
 
 ## 1.0.4
-- Bug with php 8.4
+- Bugfix with php 8.4
 
 ## 1.0.3
 - Added Mailomat webhook support for email delivery events.
