@@ -49,6 +49,16 @@ Enter your **API Key** (available in your Mailomat domain settings) and click **
 
 ---
 
+## Bounced emails
+
+This plugin adds a utility to list the bounced emails. 
+
+It can export the list in csv. 
+
+You can find the utility in Utilities -> Email Report
+
+---
+
 ## Webhooks
 
 This plugin exposes a webhook endpoint that can be configured in Mailomat to receive email delivery events.

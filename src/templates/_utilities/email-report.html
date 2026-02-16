@@ -1,0 +1,204 @@
+<div class="email-report-utility">
+    <h2>{{ "Email Report"|t('craft-mailomat') }}</h2>
+    {#
+    <p>{{ "View the most recent 100 delivered emails from Mailomat."|t('craft-mailomat') }}</p>
+    #}
+
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+        <div class="select" style="flex: 0 0 auto;">
+            <select id="timeframe-select">
+                <option value="24">{{ "Last 24 hours"|t('craft-mailomat') }}</option>
+                <option value="72">{{ "Last 3 days"|t('craft-mailomat') }}</option>
+                <option value="168">{{ "Last 7 days"|t('craft-mailomat') }}</option>
+                <option value="720">{{ "Last 30 days"|t('craft-mailomat') }}</option>
+            </select>
+        </div>
+        <button type="button" class="btn submit" id="fetch-bounced-btn">
+            {{ "Show Bounced Emails"|t('craft-mailomat') }}
+        </button>
+    </div>
+
+    <div id="emails-loading" style="display: none; margin-top: 20px;">
+        <div class="spinner"></div>
+        <p>{{ "Loading emails..."|t('craft-mailomat') }}</p>
+    </div>
+
+    <div id="emails-error" style="display: none; margin-top: 20px;" class="error">
+    </div>
+
+    <div id="emails-results" style="display: none; margin-top: 20px;">
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th style="width: 48px;">{{ "#"|t('craft-mailomat') }}</th>
+                    <th style="width: 25%;">{{ "Email"|t('craft-mailomat') }}</th>
+                    <th style="width: 20%;">{{ "Date/Time"|t('craft-mailomat') }}</th>
+                    <th style="width: auto;">{{ "Status Message"|t('craft-mailomat') }}</th>
+                </tr>
+            </thead>
+            <tbody id="emails-table-body">
+            </tbody>
+        </table>
+
+        <div class="buttons" style="margin-top: 20px;">
+            <button type="button" class="btn" id="export-csv-btn">
+                {{ "Export to CSV"|t('craft-mailomat') }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const fetchBouncedBtn = document.getElementById('fetch-bounced-btn');
+    const timeframeSelect = document.getElementById('timeframe-select');
+    const loadingDiv = document.getElementById('emails-loading');
+    const errorDiv = document.getElementById('emails-error');
+    const resultsDiv = document.getElementById('emails-results');
+    const tableBody = document.getElementById('emails-table-body');
+    const exportCsvBtn = document.getElementById('export-csv-btn');
+
+    let currentEventsData = [];
+
+    function fetchEmails(actionUrl) {
+        // Show loading, hide others
+        fetchBouncedBtn.disabled = true;
+        loadingDiv.style.display = 'block';
+        errorDiv.style.display = 'none';
+        resultsDiv.style.display = 'none';
+
+        // Get selected timeframe
+        const hoursBack = timeframeSelect.value;
+
+        // Make AJAX request
+        fetch(actionUrl, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-Token': Craft.csrfTokenValue,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                hoursBack: parseInt(hoursBack)
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadingDiv.style.display = 'none';
+            fetchBouncedBtn.disabled = false;
+
+            if (data.success) {
+                // Store data for CSV export
+                currentEventsData = data.events || [];
+
+                // Display results
+                tableBody.innerHTML = '';
+
+                if (data.events && data.events.length > 0) {
+                    data.events.forEach((event, index) => {
+                        const row = document.createElement('tr');
+
+                        // Format date in Swiss format (dd.mm.yyyy HH:MM)
+                        const date = new Date(event.occurredAt);
+                        const formattedDate = date.toLocaleString('de-CH', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${escapeHtml(event.email)}</td>
+                            <td>${formattedDate}</td>
+                            <td>${escapeHtml(event.statusMessage || '')}</td>
+                        `;
+
+                        tableBody.appendChild(row);
+                    });
+
+                    resultsDiv.style.display = 'block';
+                } else {
+                    errorDiv.textContent = '{{ "No bounced emails found"|t('craft-mailomat') }}';
+                    errorDiv.style.display = 'block';
+                }
+            } else {
+                // Display error
+                errorDiv.textContent = data.error || '{{ "An error occurred"|t('craft-mailomat') }}';
+                errorDiv.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            loadingDiv.style.display = 'none';
+            fetchBouncedBtn.disabled = false;
+            errorDiv.textContent = '{{ "Failed to fetch emails"|t('craft-mailomat') }}: ' + error.message;
+            errorDiv.style.display = 'block';
+        });
+    }
+
+    fetchBouncedBtn.addEventListener('click', function() {
+        fetchEmails('{{ actionUrl("craft-mailomat/email-report/fetch-bounced") }}');
+    });
+
+    exportCsvBtn.addEventListener('click', function() {
+        if (currentEventsData.length === 0) {
+            return;
+        }
+
+        // Create CSV content
+        const headers = ['Email', 'Event Type', 'Date/Time', 'Status Message'];
+        const csvRows = [headers.join(',')];
+
+        currentEventsData.forEach(event => {
+            const date = new Date(event.occurredAt);
+            const formattedDate = date.toLocaleString('de-CH', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            const row = [
+                escapeCsv(event.email),
+                escapeCsv(event.eventType),
+                escapeCsv(formattedDate),
+                escapeCsv(event.statusMessage || '')
+            ];
+            csvRows.push(row.join(','));
+        });
+
+        const csvContent = csvRows.join('\n');
+
+        // Create download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'bounced-emails-' + new Date().toISOString().split('T')[0] + '.csv');
+        link.style.visibility = 'hidden';
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function escapeCsv(text) {
+        if (!text) return '';
+        // Escape quotes and wrap in quotes if contains comma, quote, or newline
+        const textStr = String(text);
+        if (textStr.includes(',') || textStr.includes('"') || textStr.includes('\n')) {
+            return '"' + textStr.replace(/"/g, '""') + '"';
+        }
+        return textStr;
+    }
+})();
+</script>

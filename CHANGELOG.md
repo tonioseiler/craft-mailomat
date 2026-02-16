@@ -1,5 +1,11 @@
 # Release Notes for Craft Mailomat
 
+## 1.0.6
+- new feature: get bounced emails
+
+## 1.0.5
+- webhook secret
+
 ## 1.0.4
 - Bug with php 8.4
 

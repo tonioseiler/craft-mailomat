@@ -8,8 +8,10 @@ use craft\elements\User;
 use craft\events\RegisterComponentTypesEvent;
 use craft\helpers\MailerHelper;
 use craft\log\MonologTarget;
+use craft\services\Utilities;
 use furbo\craftmailomat\events\MailomatWebhookEvent;
 use furbo\craftmailomat\services\WebhookCampaignService;
+use furbo\craftmailomat\utilities\EmailReportUtility;
 use Monolog\Formatter\LineFormatter;
 use Psr\Log\LogLevel;
 use yii\base\Event;
@@ -90,6 +92,22 @@ class CraftMailomat extends Plugin
                     }
             );
         }
+
+        // Register utility
+        $utilityEventName = defined(sprintf('%s::EVENT_REGISTER_UTILITY_TYPES', Utilities::class))
+            ? Utilities::EVENT_REGISTER_UTILITY_TYPES // Craft 4
+            /** @phpstan-ignore-next-line */
+            : Utilities::EVENT_REGISTER_UTILITIES; // Craft 5+
+
+        Event::on(
+            Utilities::class,
+            $utilityEventName,
+            function(RegisterComponentTypesEvent $event) {
+                $event->types[] = EmailReportUtility::class;
+            }
+        );
+
+
     }
 
     /**
