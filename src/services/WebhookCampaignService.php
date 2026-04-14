@@ -40,7 +40,7 @@ class WebhookCampaignService extends Component
 
         match ($event) {
             'complained' => Campaign::$plugin->webhook->complain($contact),
-            'failure_tmp', 'failure_perm' => Campaign::$plugin->webhook->bounce($contact),
+            'failure_perm' => Campaign::$plugin->webhook->bounce($contact),
             'unsubscribed' => Campaign::$plugin->webhook->unsubscribe($contact),
             default => null,
         };
